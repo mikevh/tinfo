@@ -1,0 +1,205 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+<div class="container">
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th></th>
+            <th>4g</th>
+            <th>5g</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>bars</td>
+            <td><span id="4gbars">0</span></td>
+            <td><span id="5gbars">0</span></td>
+        </tr>
+        <tr>
+            <td>RSRP</td>
+            <td>
+                <span id="4grsrp_v"></span>
+                <div class="progress">
+                    <div id="4grsrp" class="progress-bar bg-info" role="progressbar" style="width: 10%"></div>
+                </div>
+            </td>
+            <td>
+                <span id="5grsrp_v"></span>
+                <div class="progress">
+                    <div id="5grsrp" class="progress-bar bg-info" role="progressbar" style="width: 20%"></div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>RSRQ</td>
+            <td>
+                <span id="4grsrq_v"></span>
+                <div class="progress">
+                    <div id="4grsrq" class="progress-bar bg-info" role="progressbar" style="width: 10%"></div>
+                </div>
+            </td>
+            <td>
+                <span id="5grsrq_v"></span>
+                <div class="progress">
+                    <div id="5grsrq" class="progress-bar bg-info" role="progressbar" style="width: 20%"></div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>SINR</td>
+            <td>
+                <span id="4gsinr_v"></span>
+                <div class="progress">
+                    <div id="4gsinr" class="progress-bar bg-info" role="progressbar" style="width: 10%"></div>
+                </div>
+            </td>
+            <td>
+                <span id="5gsinr_v"></span>
+                <div class="progress">
+                    <div id="5gsinr" class="progress-bar bg-info" role="progressbar" style="width: 20%"></div>
+                </div>
+            </td>
+        </tr>
+    </tbody>
+</table>
+<table class="table">
+    <thead>
+        <tr>
+            <th></th>
+            <th>RSRP</th>
+            <th>RSRQ</th>
+            <th>SINR</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr class="bg-success text-white">
+            <td>excellent</td>
+            <td>&gt;=-80</td>
+            <td>&gt;=-10</td>
+            <td>&gt;=20</td>
+        </tr>
+        <tr class="bg-info text-white">
+            <td>good</td>
+            <td>-80 to -90</td>
+            <td>-10 to -15</td>
+            <td>13 to 20</td>
+        </tr>
+        <tr class="bg-warning text-white">
+            <td>mid</td>
+            <td>-90 to -100</td>
+            <td>-15 to -20</td>
+            <td>0 to 13</td>
+        </tr>
+        <tr class="bg-danger text-white">
+            <td>edge</td>
+            <td>&lt;-100</td>
+            <td>&lt;-20</td>
+            <td>&lt;0</td>
+        </tr>
+    </tbody>
+</table>
+</div>
+@section Scripts {
+    <script>
+$(() => {
+
+    /*
+     *              RSRP(dBm)       RSRQ(dB)        SINR(dB)
+     *  excellent   >=-80           >=-10           >=20
+     *  good        -80 to -90      -10 to -15      13 to 20
+     *  mid         -90 to -100     -15 to -20      0 to 13
+     *  edge        <=-100          <-20            <=0
+     */
+
+    var sinrColor = val => {
+        if (val >= 20) return 'success';
+        if (val >= 13) return 'info';
+        if (val > 0) return 'warning';
+        return 'danger';
+    }
+
+    var rsrqColor = val => {
+        if (val >= -10) return 'success';
+        if (val >= -15) return 'info';
+        if (val >= -20) return 'warning';
+        return 'danger';
+    }
+
+    var rsrpColor = val => {
+        if(val >= -80) return 'success';
+        if(val >= -90) return 'info';
+        if(val >= -100) return 'warning';
+        return 'danger';
+    }
+
+    var valueToPercent = (s, t) => {
+        let min, max
+        if (t === 'rsrp') {
+            min = -103;
+            max = -75;
+        }
+        else if (t === 'rsrq') {
+            min = -25;
+            max = -5;
+        }
+        else {
+            min = -1;
+            max = 20;
+        }
+        
+        let percent = ((s - min) / (max - min) * 100) + '%';
+        return percent;
+    }
+
+    var update = data => {
+        console.log(data);
+        $('#4gbars').text(data.signal['4g'].bars);
+        $('#5gbars').text(data.signal['5g'].bars);
+
+        var _4grsrp = rsrpColor(data.signal['4g'].rsrp);
+        var _5grsrp = rsrpColor(data.signal['5g'].rsrp);
+        var _4grsrq = rsrqColor(data.signal['4g'].rsrq);
+        var _5grsrq = rsrqColor(data.signal['5g'].rsrq);
+        var _4gsinr = sinrColor(data.signal['4g'].sinr);
+        var _5gsinr = sinrColor(data.signal['5g'].sinr);
+
+        var _4g_rsrp_p = valueToPercent(data.signal['4g'].rsrp, 'rsrp');
+        var _5g_rsrp_p = valueToPercent(data.signal['5g'].rsrp, 'rsrp');
+        var _4g_rsrq_p = valueToPercent(data.signal['4g'].rsrq, 'rsrq');
+        var _5g_rsrq_p = valueToPercent(data.signal['5g'].rsrq, 'rsrq');
+        var _4g_sinr_p = valueToPercent(data.signal['4g'].sinr, 'sinr');
+        var _5g_sinr_p = valueToPercent(data.signal['5g'].sinr, 'sinr');
+
+        $('#4grsrp').attr('class', 'progress-bar bg-' + _4grsrp);
+        $('#4grsrp').css('width', _4g_rsrp_p);
+        $('#4grsrp_v').text(data.signal['4g'].rsrp);
+        $('#5grsrp').attr('class', 'progress-bar bg-' + _5grsrp);
+        $('#5grsrp').css('width', _5g_rsrp_p);
+        $('#5grsrp_v').text(data.signal['5g'].rsrp);
+
+        $('#4grsrq').attr('class', 'progress-bar bg-' + _4grsrq);
+        $('#4grsrq').css('width', _4g_rsrq_p);
+        $('#4grsrq_v').text(data.signal['4g'].rsrq);
+        $('#5grsrq').attr('class', 'progress-bar bg-' + _5grsrq);
+        $('#5grsrq').css('width', _5g_rsrq_p);
+        $('#5grsrq_v').text(data.signal['5g'].rsrq);
+
+        $('#4gsinr').attr('class', 'progress-bar bg-' + _4gsinr);
+        $('#4gsinr').css('width', _4g_sinr_p);
+        $('#4gsinr_v').text(data.signal['4g'].sinr);
+        $('#5gsinr').attr('class', 'progress-bar bg-' + _5gsinr);
+        $('#5gsinr').css('width', _5g_sinr_p);
+        $('#5gsinr_v').text(data.signal['5g'].sinr);
+    };
+
+    var tick = () => {
+        fetch('/home/update')
+            .then(r => r.json())
+            .then(d => update(d))
+    };
+    //setTimeout(tick, 1);
+    setInterval(tick, 1000);
+});
+    </script>
+}
